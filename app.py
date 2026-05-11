@@ -11,8 +11,8 @@ import time
 # ============================================================
 
 st.set_page_config(
-    page_title="Vizualizare Algoritmul Ungar",
-    page_icon="💸",
+    page_title="Algoritmul Ungar",
+    page_icon="💰",
     layout="wide"
 )
 
@@ -43,7 +43,7 @@ h1, h2, h3 {
     border: none;
     border-radius: 14px;
     height: 3.2em;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
 }
 
@@ -57,10 +57,6 @@ h1, h2, h3 {
     border-radius: 18px;
     text-align: center;
     border: 1px solid rgba(255,255,255,0.1);
-}
-
-.money {
-    font-size: 40px;
 }
 
 .assignment-box {
@@ -78,12 +74,15 @@ h1, h2, h3 {
     border: 1px solid rgba(255,255,255,0.1);
 }
 
-.info-box {
-    background: rgba(255,255,255,0.06);
-    padding: 18px;
-    border-radius: 16px;
-    border: 1px solid rgba(255,255,255,0.08);
-    font-size: 18px;
+.money-rain {
+    text-align:center;
+    font-size:60px;
+    animation: pulse 0.5s infinite alternate;
+}
+
+@keyframes pulse {
+    from {transform: scale(1);}
+    to {transform: scale(1.1);}
 }
 
 </style>
@@ -93,20 +92,7 @@ h1, h2, h3 {
 # TITLU
 # ============================================================
 
-st.title("💸 Vizualizare Algoritmul Ungar")
-
-st.markdown("""
-<div class="info-box">
-
-Vizualizare interactivă pentru probleme de optimizare și alocare.
-
-✔ Matrice modificabilă  
-✔ Execuție pas cu pas  
-✔ Reprezentare grafică bipartită  
-✔ Vizualizare dinamică a soluției  
-
-</div>
-""", unsafe_allow_html=True)
+st.title("💰 Algoritmul Ungar")
 
 # ============================================================
 # SCHEMA LOGICA
@@ -126,7 +112,7 @@ st.image(
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ============================================================
-# MATRICE INITIALA
+# MATRICE
 # ============================================================
 
 default_matrix = np.array([
@@ -138,7 +124,7 @@ default_matrix = np.array([
     [5, 1, 2, 10, 6, 3]
 ])
 
-st.markdown("## ✏️ Modificarea matricei")
+st.markdown("## ✏️ Matrice")
 
 df = pd.DataFrame(
     default_matrix,
@@ -152,7 +138,7 @@ edited_df = st.data_editor(
 )
 
 # ============================================================
-# ALGORITM
+# CLASA
 # ============================================================
 
 class HungarianSeminar:
@@ -164,6 +150,8 @@ class HungarianSeminar:
         self.n = len(C)
 
         self.steps = []
+
+    # --------------------------------------------------------
 
     def save_step(self, title):
         self.steps.append((title, self.C.copy()))
@@ -332,22 +320,22 @@ if st.button("🚀 Rulează algoritmul"):
 
     money_placeholder = st.empty()
 
-    for _ in range(6):
+    for _ in range(8):
 
         money_placeholder.markdown("""
-        <h1 style='text-align:center; font-size:60px;'>
-        💸 💰 💵 💳 💸 💰 💵
-        </h1>
+        <div class="money-rain">
+        💸 💰 💵 💳 🪙 💸 💰 💵
+        </div>
         """, unsafe_allow_html=True)
 
-        time.sleep(0.15)
+        time.sleep(0.18)
 
         money_placeholder.empty()
 
-        time.sleep(0.1)
+        time.sleep(0.08)
 
     # ========================================================
-    # RULARE
+    # EXECUTIE
     # ========================================================
 
     matrix = edited_df.values
@@ -367,8 +355,7 @@ if st.button("🚀 Rulează algoritmul"):
     with col1:
         st.markdown(f"""
         <div class="metric-card">
-        <div class="money">💵💸💰</div>
-        <h2>Cost total</h2>
+        <h2>💵 Cost total</h2>
         <h1>{total}</h1>
         </div>
         """, unsafe_allow_html=True)
@@ -376,14 +363,13 @@ if st.button("🚀 Rulează algoritmul"):
     with col2:
         st.markdown(f"""
         <div class="metric-card">
-        <div class="money">📊⚡📈</div>
-        <h2>Alocări</h2>
+        <h2>📊 Alocări</h2>
         <h1>{len(selected)}</h1>
         </div>
         """, unsafe_allow_html=True)
 
     # ========================================================
-    # ALOCARI
+    # SOLUTIE
     # ========================================================
 
     st.markdown("## 🔗 Soluția optimă")
@@ -416,10 +402,7 @@ if st.button("🚀 Rulează algoritmul"):
             index=[f"x{i+1}" for i in range(solver.n)]
         )
 
-        st.dataframe(
-            df_step,
-            use_container_width=True
-        )
+        st.dataframe(df_step, use_container_width=True)
 
     # ========================================================
     # GRAF
@@ -494,20 +477,5 @@ if st.button("🚀 Rulează algoritmul"):
 # SIDEBAR
 # ============================================================
 
-st.sidebar.title("⚙️ Panou de control")
+st.sidebar.title("⚙️ Panou")
 
-st.sidebar.markdown("""
-### Funcționalități
-
-✔ Matrice editabilă  
-✔ Vizualizare pas cu pas  
-✔ Reprezentare bipartită  
-✔ Optimizare automată  
-
-### Tehnologii
-
-- Streamlit  
-- NumPy  
-- NetworkX  
-- Matplotlib  
-""")
