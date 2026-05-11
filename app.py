@@ -112,29 +112,64 @@ st.image(
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ============================================================
-# MATRICE
+# DIMENSIUNE MATRICE
 # ============================================================
 
-default_matrix = np.array([
+st.markdown("## 📐 Dimensiunea matricei")
+
+n = st.slider(
+    "Selectează dimensiunea matricei",
+    min_value=2,
+    max_value=10,
+    value=6
+)
+
+# ============================================================
+# MATRICE INITIALA
+# ============================================================
+
+default_values = [
     [1, 7, 5, 9, 3, 4],
     [6, 7, 4, 8, 5, 1],
     [4, 6, 5, 7, 1, 4],
     [8, 9, 3, 1, 2, 8],
     [5, 2, 2, 4, 6, 6],
     [5, 1, 2, 10, 6, 3]
-])
+]
+
+matrix_data = []
+
+for i in range(n):
+
+    row = []
+
+    for j in range(n):
+
+        if i < 6 and j < 6:
+            row.append(default_values[i][j])
+        else:
+            row.append(0)
+
+    matrix_data.append(row)
+
+default_matrix = np.array(matrix_data)
+
+# ============================================================
+# MATRICE
+# ============================================================
 
 st.markdown("## ✏️ Matrice")
 
 df = pd.DataFrame(
     default_matrix,
-    columns=[f"y{i+1}" for i in range(6)],
-    index=[f"x{i+1}" for i in range(6)]
+    columns=[f"y{i+1}" for i in range(n)],
+    index=[f"x{i+1}" for i in range(n)]
 )
 
 edited_df = st.data_editor(
     df,
-    use_container_width=True
+    use_container_width=True,
+    key="matrix_editor"
 )
 
 # ============================================================
@@ -320,7 +355,7 @@ if st.button("🚀 Rulează algoritmul"):
 
     money_placeholder = st.empty()
 
-    for _ in range(8):
+    for _ in range(10):
 
         money_placeholder.markdown("""
         <div class="money-rain">
@@ -328,11 +363,11 @@ if st.button("🚀 Rulează algoritmul"):
         </div>
         """, unsafe_allow_html=True)
 
-        time.sleep(0.18)
+        time.sleep(0.15)
 
         money_placeholder.empty()
 
-        time.sleep(0.08)
+        time.sleep(0.05)
 
     # ========================================================
     # EXECUTIE
@@ -402,7 +437,10 @@ if st.button("🚀 Rulează algoritmul"):
             index=[f"x{i+1}" for i in range(solver.n)]
         )
 
-        st.dataframe(df_step, use_container_width=True)
+        st.dataframe(
+            df_step,
+            use_container_width=True
+        )
 
     # ========================================================
     # GRAF
@@ -479,3 +517,9 @@ if st.button("🚀 Rulează algoritmul"):
 
 st.sidebar.title("⚙️ Panou")
 
+st.sidebar.markdown("""
+✔ Matrice editabilă  
+✔ Dimensiune variabilă  
+✔ Execuție pas cu pas  
+✔ Reprezentare grafică  
+""")
