@@ -4,13 +4,14 @@ import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
 from PIL import Image
+import time
 
 # ============================================================
 # CONFIG PAGINA
 # ============================================================
 
 st.set_page_config(
-    page_title="Hungarian Algorithm Visualizer",
+    page_title="Vizualizare Algoritmul Ungar",
     page_icon="💸",
     layout="wide"
 )
@@ -77,6 +78,14 @@ h1, h2, h3 {
     border: 1px solid rgba(255,255,255,0.1);
 }
 
+.info-box {
+    background: rgba(255,255,255,0.06);
+    padding: 18px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    font-size: 18px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -84,22 +93,26 @@ h1, h2, h3 {
 # TITLU
 # ============================================================
 
-st.title("💸 Hungarian Algorithm Visualizer")
+st.title("💸 Vizualizare Algoritmul Ungar")
 
 st.markdown("""
-Interactive visualization for solving assignment optimization problems.
+<div class="info-box">
 
-✔ Editable matrix  
-✔ Step-by-step execution  
-✔ Bipartite graph visualization  
-✔ Dynamic optimization  
-""")
+Vizualizare interactivă pentru probleme de optimizare și alocare.
+
+✔ Matrice modificabilă  
+✔ Execuție pas cu pas  
+✔ Reprezentare grafică bipartită  
+✔ Vizualizare dinamică a soluției  
+
+</div>
+""", unsafe_allow_html=True)
 
 # ============================================================
 # SCHEMA LOGICA
 # ============================================================
 
-st.markdown("## 🧠 Logical Scheme")
+st.markdown("## 🧠 Schema logică")
 
 st.markdown('<div class="schema-box">', unsafe_allow_html=True)
 
@@ -125,7 +138,7 @@ default_matrix = np.array([
     [5, 1, 2, 10, 6, 3]
 ])
 
-st.markdown("## ✏️ Edit Matrix")
+st.markdown("## ✏️ Modificarea matricei")
 
 df = pd.DataFrame(
     default_matrix,
@@ -152,8 +165,6 @@ class HungarianSeminar:
 
         self.steps = []
 
-    # --------------------------------------------------------
-
     def save_step(self, title):
         self.steps.append((title, self.C.copy()))
 
@@ -166,14 +177,14 @@ class HungarianSeminar:
         for i in range(self.n):
             self.C[i] -= rowmin[i]
 
-        self.save_step("Row Reduction")
+        self.save_step("Reducerea pe linii")
 
         colmin = self.C.min(axis=0)
 
         for j in range(self.n):
             self.C[:, j] -= colmin[j]
 
-        self.save_step("Column Reduction")
+        self.save_step("Reducerea pe coloane")
 
     # --------------------------------------------------------
 
@@ -283,7 +294,7 @@ class HungarianSeminar:
                 elif cuts == 2:
                     self.C[i, j] += eps
 
-        self.save_step(f"Zero Adjustment (ε = {eps})")
+        self.save_step(f"Deplasarea zerourilor (ε = {eps})")
 
     # --------------------------------------------------------
 
@@ -310,10 +321,34 @@ class HungarianSeminar:
         return selected, total
 
 # ============================================================
-# BUTON RULARE
+# BUTON
 # ============================================================
 
-if st.button("🚀 Run Algorithm"):
+if st.button("🚀 Rulează algoritmul"):
+
+    # ========================================================
+    # ANIMATIE BANI
+    # ========================================================
+
+    money_placeholder = st.empty()
+
+    for _ in range(6):
+
+        money_placeholder.markdown("""
+        <h1 style='text-align:center; font-size:60px;'>
+        💸 💰 💵 💳 💸 💰 💵
+        </h1>
+        """, unsafe_allow_html=True)
+
+        time.sleep(0.15)
+
+        money_placeholder.empty()
+
+        time.sleep(0.1)
+
+    # ========================================================
+    # RULARE
+    # ========================================================
 
     matrix = edited_df.values
 
@@ -325,7 +360,7 @@ if st.button("🚀 Run Algorithm"):
     # REZULTATE
     # ========================================================
 
-    st.markdown("## 💰 Results")
+    st.markdown("## 💰 Rezultate")
 
     col1, col2 = st.columns(2)
 
@@ -333,7 +368,7 @@ if st.button("🚀 Run Algorithm"):
         st.markdown(f"""
         <div class="metric-card">
         <div class="money">💵💸💰</div>
-        <h2>Total Cost</h2>
+        <h2>Cost total</h2>
         <h1>{total}</h1>
         </div>
         """, unsafe_allow_html=True)
@@ -341,8 +376,8 @@ if st.button("🚀 Run Algorithm"):
     with col2:
         st.markdown(f"""
         <div class="metric-card">
-        <div class="money">🏦📈💳</div>
-        <h2>Assignments</h2>
+        <div class="money">📊⚡📈</div>
+        <h2>Alocări</h2>
         <h1>{len(selected)}</h1>
         </div>
         """, unsafe_allow_html=True)
@@ -351,7 +386,7 @@ if st.button("🚀 Run Algorithm"):
     # ALOCARI
     # ========================================================
 
-    st.markdown("## 🔗 Optimal Assignments")
+    st.markdown("## 🔗 Soluția optimă")
 
     for i, j in sorted(selected):
 
@@ -359,7 +394,7 @@ if st.button("🚀 Run Algorithm"):
 
         st.markdown(f"""
         <div class="assignment-box">
-        💸 <b>x{i+1}</b> → <b>y{j+1}</b>
+        <b>x{i+1}</b> → <b>y{j+1}</b>
         <br><br>
         💰 Cost: <b>{cost}</b>
         </div>
@@ -369,7 +404,7 @@ if st.button("🚀 Run Algorithm"):
     # PASI
     # ========================================================
 
-    st.markdown("## 📊 Algorithm Steps")
+    st.markdown("## 📊 Pașii algoritmului")
 
     for title, mat in solver.steps:
 
@@ -387,10 +422,10 @@ if st.button("🚀 Run Algorithm"):
         )
 
     # ========================================================
-    # GRAF BIPARTIT
+    # GRAF
     # ========================================================
 
-    st.markdown("## 🌐 Bipartite Graph")
+    st.markdown("## 🌐 Graful bipartit")
 
     G = nx.Graph()
 
@@ -455,32 +490,21 @@ if st.button("🚀 Run Algorithm"):
 
     st.pyplot(fig)
 
-    # ========================================================
-    # EFECT FINAL
-    # ========================================================
-
-    st.markdown("""
-    <h1 style='text-align:center;'>
-    💸 💰 💵 🏦 💳 💸 💰 💵
-    </h1>
-    """, unsafe_allow_html=True)
-
 # ============================================================
 # SIDEBAR
 # ============================================================
 
-st.sidebar.title("⚙️ Control Panel")
+st.sidebar.title("⚙️ Panou de control")
 
 st.sidebar.markdown("""
-### Features
+### Funcționalități
 
-✔ Editable matrix  
-✔ Logical scheme  
-✔ Step-by-step visualization  
-✔ Bipartite graph  
-✔ Optimization engine  
+✔ Matrice editabilă  
+✔ Vizualizare pas cu pas  
+✔ Reprezentare bipartită  
+✔ Optimizare automată  
 
-### Technologies
+### Tehnologii
 
 - Streamlit  
 - NumPy  
