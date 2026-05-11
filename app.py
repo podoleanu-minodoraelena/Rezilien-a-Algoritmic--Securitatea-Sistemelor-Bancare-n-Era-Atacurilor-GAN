@@ -4,19 +4,17 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import pandas as pd
 
+# Clasa principală care conține logica Algoritmului Ungar
 class HungarianSeminar:
     def __init__(self, C):
         self.original = np.array(C, dtype=int)
         self.C = self.original.copy()
         self.n = len(C)
-        self.row_mins = []
-        self.col_mins = []
-        self.eps = []
 
     def show_st(self, title, selected=None, crossed=None, cut_rows=None, cut_cols=None, rowmins=None, colmins=None):
         st.write(f"#### 📋 {title}")
         
-        # Construim matricea pentru afișare [cite: 3, 5, 6]
+        # Construim matricea vizuală cu simbolurile ⓪ și ✗
         display_matrix = []
         for i in range(self.n):
             row = []
@@ -42,7 +40,7 @@ class HungarianSeminar:
                           index=[f"x{i+1}" for i in range(self.n)], 
                           columns=cols_names)
         
-        st.dataframe(df.style.set_properties(**{'text-align': 'center', 'font-size': '18px'}))
+        st.table(df)
 
         if colmins is not None:
             st.write(f"**📉 MIN C:** `{list(colmins)}`")
@@ -51,60 +49,6 @@ class HungarianSeminar:
             cols = st.columns(2)
             if cut_rows: cols[0].error(f"Linii tăiate: {', '.join([f'l{i+1}' for i in sorted(cut_rows)])}")
             if cut_cols: cols[1].error(f"Coloane tăiate: {', '.join([f'c{j+1}' for j in sorted(cut_cols)])}")
-
-    def solve(self):
-        # Pas 1 - Reducere [cite: 10, 11]
-        st.divider()
-        st.subheader("🏁 Etapa 1: Pregătirea matricii")
-        rowmin = self.C.min(axis=1)
-        self.show_st("Reducere pe linii", rowmins=rowmin)
-        for i in range(self.n): self.C[i] -= rowmin[i]
-
-        colmin = self.C.min(axis=0)
-        self.show_st("Reducere pe coloane (Matricea Redusă)", colmins=colmin)
-        for j in range(self.n): self.C[:, j] -= colmin[j]
-
-        iteration = 0
-        while iteration < 10:
-            iteration += 1
-            st.divider()
-            st.subheader(f"🔄 Iterația {iteration}")
-            
-            selected, crossed = self.label_zeros() [cite: 12]
-            n0 = len(selected)
-            self.show_st("Etichetare zerouri", selected, crossed) [cite: 16]
-
-            if n0 == self.n:
-                break
-
-            # Marcare și Deplasare [cite: 17, 21]
-            cut_rows, cut_cols = self.step4(selected, crossed)
-            
-            T1 = [self.C[i,j] for i in range(self.n) for j in range(self.n) if i not in cut_rows and j not in cut_cols]
-            if not T1: break
-            eps = min(T1)
-            
-            st.warning(f"S-a ales valoarea minimă neacoperită: ε = {eps}")
-            for i in range(self.n):
-                for j in range(self.n):
-                    if i not in cut_rows and j not in cut_cols: self.C[i, j] -= eps
-                    elif i in cut_rows and j in cut_cols: self.C[i, j] += eps
-            self.show_st("Matricea după deplasarea zerourilor")
-
-        # Soluția finală [cite: 30, 31]
-        st.divider()
-        st.balloons()
-        st.header("🏆 Rezultate Finale")
-        val = sum(self.original[i, j] for i, j in selected)
-        sol = [f"(x{i+1}, y{j+1})" for i, j in sorted(selected)]
-        
-        c1, c2 = st.columns(2)
-        c1.metric("Valoare Optimă V(W_max)", val)
-        c2.write("**Muchii selectate:**")
-        c2.info(", ".join(sol))
-        
-        st.write("#### 🕸️ Vizualizare Graf Bipartit")
-        self.plot_bipartite_graph(selected)
 
     def label_zeros(self):
         zeros = [(i, j) for i in range(self.n) if self.C[i, j] == 0]
@@ -148,35 +92,99 @@ class HungarianSeminar:
         G.add_nodes_from(left, bipartite=0)
         G.add_nodes_from(right, bipartite=1)
         G.add_edges_from([(f"x{i+1}", f"y{j+1}") for i, j in selected])
-        pos = {**{n: (1, self.n-i) for i, n in enumerate(left)}, **{n: (2, self.n-i) for i, n in enumerate(right)}}
+        
+        pos = {**{n: (1, self.n-i) for i, n in enumerate(left)}, 
+               **{n: (2, self.n-i) for i, n in enumerate(right)}}
+        
         fig, ax = plt.subplots(figsize=(8, 5))
         nx.draw(G, pos, with_labels=True, node_color=['#3498db']*self.n + ['#2ecc71']*self.n, 
                 edge_color='#e74c3c', width=2, node_size=1000, font_weight='bold')
         st.pyplot(fig)
 
-# --- UI STREAMLIT ---
-st.set_page_config(page_title="Metoda Ungară", page_icon="🧩", layout="centered")
-st.title("🧩 Algorirmul Ungar")
+    def solve(self):
+        # Pas 1 - Reducere
+        st.divider()
+        st.subheader("🏁 Etapa 1: Pregătirea matricii")
+        rowmin = self.C.min(axis=1)
+        self.show_st("Reducere pe linii", rowmins=rowmin)
+        for i in range(self.n): self.C[i] -= rowmin[i]
 
-# Secțiune dedicată schemei logice
-with st.expander("📖 Vezi Schema Logică și Explicația Algoritmului"):
-    st.write("Algoritmul urmează pașii clasici ai Metodei Ungare pentru optimizarea costurilor:")
-    
-    st.image("schema_logica.png", caption="Fluxul logic al implementării")
+        colmin = self.C.min(axis=0)
+        self.show_st("Reducere pe coloane (Matricea Redusă)", colmins=colmin)
+        for j in range(self.n): self.C[:, j] -= colmin[j]
+
+        iteration = 0
+        while iteration < 10:
+            iteration += 1
+            st.divider()
+            st.subheader(f"🔄 Iterația {iteration}")
+            
+            selected, crossed = self.label_zeros()
+            n0 = len(selected)
+            self.show_st("Etichetare zerouri", selected, crossed)
+
+            if n0 == self.n:
+                break
+
+            cut_rows, cut_cols = self.step4(selected, crossed)
+            T1 = [self.C[i,j] for i in range(self.n) for j in range(self.n) if i not in cut_rows and j not in cut_cols]
+            
+            if not T1: break
+            eps = min(T1)
+            
+            st.warning(f"Ajustare matrice: ε = {eps}")
+            for i in range(self.n):
+                for j in range(self.n):
+                    if i not in cut_rows and j not in cut_cols: self.C[i, j] -= eps
+                    elif i in cut_rows and j in cut_cols: self.C[i, j] += eps
+            self.show_st("Matricea după ajustare")
+
+        st.divider()
+        st.balloons()
+        st.header("🏆 Rezultate Finale")
+        val = sum(self.original[i, j] for i, j in selected)
+        sol = [f"(x{i+1}, y{j+1})" for i, j in sorted(selected)]
+        
+        c1, c2 = st.columns(2)
+        c1.metric("Cost Optim V(W_max)", val)
+        c2.info(f"Muchii: {', '.join(sol)}")
+        
+        st.write("#### 🕸️ Graful Bipartit al Soluției")
+        self.plot_bipartite_graph(selected)
+
+# --- INTERFAȚA UTILIZATOR (STREAMLIT) ---
+st.set_page_config(page_title="Metoda Ungară", page_icon="🧩", layout="centered")
+st.title("🧩 Rezolvare Interactivă: Metoda Ungară")
+
+with st.expander("📖 Vezi Schema Logică a Algoritmului"):
+    st.image("schema_logica.png", caption="Fluxul de execuție al algoritmului")
 
 st.sidebar.header("⚙️ Configurare")
-n = st.sidebar.number_input("Dimensiunea matricei (n)", 2, 8, 3)
 
-st.write("### 🖋️ Introdu matricea de costuri:")
+# Matricea ta specifică din imagine
+default_matrix = [
+    [1, 7, 5, 9, 3, 4],
+    [6, 7, 4, 8, 5, 1],
+    [4, 6, 5, 7, 1, 4],
+    [8, 9, 3, 1, 2, 8],
+    [5, 2, 2, 4, 6, 6],
+    [5, 1, 2, 10, 6, 3]
+]
+
+n = st.sidebar.number_input("Dimensiune matrice (n)", 2, 8, 6)
+
+st.write("### 🖋️ Matricea de costuri:")
 grid = []
 for i in range(n):
     cols = st.columns(n)
-    row = []
+    row_vals = []
     for j in range(n):
-        val = cols[j].number_input(f"x{i+1}, y{j+1}", value=0, key=f"r{i}c{j}", label_visibility="collapsed")
-        row.append(val)
-    grid.append(row)
+        # Precompletăm dacă n=6, altfel punem 0
+        d_val = default_matrix[i][j] if n == 6 else 0
+        val = cols[j].number_input(f"x{i+1}y{j+1}", value=d_val, key=f"r{i}c{j}", label_visibility="collapsed")
+        row_vals.append(val)
+    grid.append(row_vals)
 
-if st.button("🚀 Lansează Calculele"):
+if st.button("🚀 Calculează Soluția"):
     solver = HungarianSeminar(grid)
     solver.solve()
