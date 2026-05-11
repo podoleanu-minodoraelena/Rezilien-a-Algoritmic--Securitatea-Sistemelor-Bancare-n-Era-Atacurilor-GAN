@@ -48,8 +48,8 @@ class HungarianStreamlit:
             rows_left.remove(r)
         return selected, crossed
 
-    def solve(self):
-        # Pas 1
+   def solve(self):
+        # Pas 1: Reducerea costurilor pe linii și coloane [cite: 10, 11]
         row_mins = self.C.min(axis=1)
         for i in range(self.n): self.C[i] -= row_mins[i]
         col_mins = self.C.min(axis=0)
@@ -58,20 +58,24 @@ class HungarianStreamlit:
         self.show_st("Matricea după reducerea costurilor (Pas 1)", None, None)
 
         iteration = 0
-        while True:
+        # Limităm la 10 iterații pentru siguranță 
+        while iteration < 10: 
             iteration += 1
             st.markdown(f"---")
             st.subheader(f"Iterația {iteration}")
             
+            # Pas 2: Încercăm să găsim cuplajul maxim cu zerourile curente [cite: 12, 16]
             selected, crossed = self.label_zeros()
             n0 = len(selected)
             
             self.show_st("Etichetare zerouri (Pas 2)", selected, crossed)
 
+            # Dacă numărul de zerouri independente e egal cu n, am terminat [cite: 30]
             if n0 == self.n:
+                st.success(f"Soluție optimă găsită la iterația {iteration}!")
                 return selected
 
-            # Pas 3 & 4 (Marcare și Deplasare)
+            # Pas 3: Marcare pentru determinarea suportului minimal [cite: 17, 20]
             marked_rows = {i for i in range(self.n) if not any((i, j) in selected for j in range(self.n))}
             marked_cols = set()
             changed = True
@@ -89,6 +93,25 @@ class HungarianStreamlit:
             cut_rows = set(range(self.n)) - marked_rows
             cut_cols = marked_cols
             
+            # Pas 4: Deplasarea zerourilor (Ajustarea matricii) [cite: 21, 24]
+            T1 = [self.C[i,j] for i in range(self.n) for j in range(self.n) if i not in cut_rows and j not in cut_cols]
+            
+            # PROTECȚIE: Dacă nu mai avem elemente netăiate sau minimul e 0, oprim bucla
+            if not T1 or min(T1) == 0:
+                st.warning("Algoritmul s-a stabilizat sau nu mai poate crea zerouri noi. Se afișează cel mai bun rezultat.")
+                return selected
+
+            eps = min(T1)
+            for i in range(self.n):
+                for j in range(self.n):
+                    if i not in cut_rows and j not in cut_cols: 
+                        self.C[i,j] -= eps
+                    elif i in cut_rows and j in cut_cols: 
+                        self.C[i,j] += eps
+            
+            st.write(f"Valoare **ε (epsilon)** utilizată pentru ajustare: {eps}")
+
+        return selected
             # Deplasare
         T1 = [self.C[i,j] for i in range(self.n) for j in range(self.n) if i not in cut_rows and j not in cut_cols]
         
