@@ -94,22 +94,7 @@ h1, h2, h3 {
 
 st.title("💰 Algoritmul Ungar")
 
-# ============================================================
-# SCHEMA LOGICA
-# ============================================================
 
-st.markdown("## 🧠 Schema logică")
-
-st.markdown('<div class="schema-box">', unsafe_allow_html=True)
-
-image = Image.open("schema_logica.png")
-
-st.image(
-    image,
-    use_container_width=True
-)
-
-st.markdown('</div>', unsafe_allow_html=True)
 
 # ============================================================
 # DIMENSIUNE MATRICE
