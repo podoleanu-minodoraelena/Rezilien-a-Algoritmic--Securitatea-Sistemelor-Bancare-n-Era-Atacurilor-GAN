@@ -90,14 +90,22 @@ class HungarianStreamlit:
             cut_cols = marked_cols
             
             # Deplasare
-            T1 = [self.C[i,j] for i in range(self.n) for j in range(self.n) if i not in cut_rows and j not in cut_cols]
-            eps = min(T1)
-            for i in range(self.n):
-                for j in range(self.n):
-                    if i not in cut_rows and j not in cut_cols: self.C[i,j] -= eps
-                    elif i in cut_rows and j in cut_cols: self.C[i,j] += eps
-            
-            st.write(f"Epsilon găsit: **{eps}**")
+        T1 = [self.C[i,j] for i in range(self.n) for j in range(self.n) if i not in cut_rows and j not in cut_cols]
+        
+        # VERIFICARE: Dacă toate elementele sunt acoperite, T1 va fi gol.
+        if not T1:
+            st.warning("Atenție: Nu s-au găsit elemente neacoperite pentru calculul epsilon. Algoritmul se oprește.")
+            return selected # Returnăm ce am găsit până acum pentru a opri eroarea
+
+        eps = min(T1)
+        for i in range(self.n):
+            for j in range(self.n):
+                if i not in cut_rows and j not in cut_cols: 
+                    self.C[i,j] -= eps
+                elif i in cut_rows and j in cut_cols: 
+                    self.C[i,j] += eps
+        
+        st.write(f"Epsilon găsit: **{eps}**")
 
     def plot_graph(self, selected):
         G = nx.Graph()
