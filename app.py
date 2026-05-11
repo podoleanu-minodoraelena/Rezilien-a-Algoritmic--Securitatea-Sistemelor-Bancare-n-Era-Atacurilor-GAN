@@ -501,11 +501,9 @@ if st.button("🚀 Rulează algoritmul"):
 # SIDEBAR
 # ============================================================
 
-st.sidebar.title("⚙️ Panou")
-
 st.sidebar.markdown("""
-✔ Matrice   
-✔ Dimensiune
-✔ Execuție pas cu pas  
-✔ Reprezentare grafică  
+* ✔ Matrice
+* ✔ Dimensiune
+* ✔ Execuție pas cu pas
+* ✔ Reprezentare grafică
 """)
