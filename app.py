@@ -16,12 +16,11 @@ class HungarianStreamlit:
     def show_st(self, title, selected=None, crossed=None, cut_rows=None, cut_cols=None):
         st.write(f"#### {title}")
         
-        # Creăm un tabel colorat pentru browser
+        # Creăm un tabel pentru browser
         df = pd.DataFrame(self.C, 
                           index=[f"x{i+1}" for i in range(self.n)],
                           columns=[f"y{j+1}" for j in range(self.n)])
         
-        # Afișăm matricea
         st.table(df)
         
         if cut_rows or cut_cols:
@@ -48,8 +47,8 @@ class HungarianStreamlit:
             rows_left.remove(r)
         return selected, crossed
 
-   def solve(self):
-        # Pas 1: Reducerea costurilor pe linii și coloane [cite: 10, 11]
+    def solve(self):
+        # Pas 1: Reducerea costurilor pe linii și coloane
         row_mins = self.C.min(axis=1)
         for i in range(self.n): self.C[i] -= row_mins[i]
         col_mins = self.C.min(axis=0)
@@ -58,24 +57,22 @@ class HungarianStreamlit:
         self.show_st("Matricea după reducerea costurilor (Pas 1)", None, None)
 
         iteration = 0
-        # Limităm la 10 iterații pentru siguranță 
         while iteration < 10: 
             iteration += 1
             st.markdown(f"---")
             st.subheader(f"Iterația {iteration}")
             
-            # Pas 2: Încercăm să găsim cuplajul maxim cu zerourile curente [cite: 12, 16]
+            # Pas 2: Încercăm să găsim cuplajul maxim
             selected, crossed = self.label_zeros()
             n0 = len(selected)
             
             self.show_st("Etichetare zerouri (Pas 2)", selected, crossed)
 
-            # Dacă numărul de zerouri independente e egal cu n, am terminat [cite: 30]
             if n0 == self.n:
                 st.success(f"Soluție optimă găsită la iterația {iteration}!")
                 return selected
 
-            # Pas 3: Marcare pentru determinarea suportului minimal [cite: 17, 20]
+            # Pas 3: Marcare pentru determinarea suportului minimal
             marked_rows = {i for i in range(self.n) if not any((i, j) in selected for j in range(self.n))}
             marked_cols = set()
             changed = True
@@ -93,12 +90,13 @@ class HungarianStreamlit:
             cut_rows = set(range(self.n)) - marked_rows
             cut_cols = marked_cols
             
-            # Pas 4: Deplasarea zerourilor (Ajustarea matricii) [cite: 21, 24]
+            self.show_st("Suport minimal (tăieturi)", selected, crossed, cut_rows, cut_cols)
+
+            # Pas 4: Deplasarea zerourilor
             T1 = [self.C[i,j] for i in range(self.n) for j in range(self.n) if i not in cut_rows and j not in cut_cols]
             
-            # PROTECȚIE: Dacă nu mai avem elemente netăiate sau minimul e 0, oprim bucla
             if not T1 or min(T1) == 0:
-                st.warning("Algoritmul s-a stabilizat sau nu mai poate crea zerouri noi. Se afișează cel mai bun rezultat.")
+                st.warning("Algoritmul s-a stabilizat. Se afișează cel mai bun rezultat.")
                 return selected
 
             eps = min(T1)
@@ -109,26 +107,9 @@ class HungarianStreamlit:
                     elif i in cut_rows and j in cut_cols: 
                         self.C[i,j] += eps
             
-            st.write(f"Valoare **ε (epsilon)** utilizată pentru ajustare: {eps}")
+            st.write(f"Valoare **ε (epsilon)** utilizată: {eps}")
 
         return selected
-            # Deplasare
-        T1 = [self.C[i,j] for i in range(self.n) for j in range(self.n) if i not in cut_rows and j not in cut_cols]
-        
-        # VERIFICARE: Dacă toate elementele sunt acoperite, T1 va fi gol.
-        if not T1:
-            st.warning("Atenție: Nu s-au găsit elemente neacoperite pentru calculul epsilon. Algoritmul se oprește.")
-            return selected # Returnăm ce am găsit până acum pentru a opri eroarea
-
-        eps = min(T1)
-        for i in range(self.n):
-            for j in range(self.n):
-                if i not in cut_rows and j not in cut_cols: 
-                    self.C[i,j] -= eps
-                elif i in cut_rows and j in cut_cols: 
-                    self.C[i,j] += eps
-        
-        st.write(f"Epsilon găsit: **{eps}**")
 
     def plot_graph(self, selected):
         G = nx.Graph()
@@ -138,15 +119,18 @@ class HungarianStreamlit:
         G.add_nodes_from(right, bipartite=1)
         edges = [(f"x{i+1}", f"y{j+1}") for i, j in selected]
         G.add_edges_from(edges)
-        pos = {**{n: (1, self.n-i) for i, n in enumerate(left)}, **{n: (2, self.n-i) for i, n in enumerate(right)}}
+        
+        pos = {**{n: (1, self.n-i) for i, n in enumerate(left)}, 
+               **{n: (2, self.n-i) for i, n in enumerate(right)}}
+        
         fig, ax = plt.subplots(figsize=(6, 4))
-        nx.draw(G, pos, with_labels=True, node_color=['skyblue']*self.n + ['lightgreen']*self.n, edge_color='red', width=2)
+        nx.draw(G, pos, with_labels=True, node_color=['skyblue']*self.n + ['lightgreen']*self.n, 
+                edge_color='red', width=2, ax=ax)
         st.pyplot(fig)
 
 # --- INTERFAȚA STREAMLIT ---
-st.title("🧩 ALGORITMUL  UNGAR")
+st.title("🧩 ALGORITMUL UNGAR")
 
-# Cerința profei: Schema logică e aici
 with st.expander("Vezi Schema Logică a Algoritmului"):
     try:
         st.image("schema_logica.png")
