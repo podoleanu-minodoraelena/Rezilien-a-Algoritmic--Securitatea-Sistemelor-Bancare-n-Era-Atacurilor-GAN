@@ -115,14 +115,20 @@ st.markdown('</div>', unsafe_allow_html=True)
 # DIMENSIUNE MATRICE
 # ============================================================
 
+# ============================================================
+# DIMENSIUNE MATRICE
+# ============================================================
+
 st.markdown("## 📐 Dimensiunea matricei")
 
-n = st.slider(
-    "Selectează dimensiunea matricei",
+n = st.number_input(
+    "Introdu dimensiunea matricei",
     min_value=2,
-    max_value=10,
-    value=6
+    value=6,
+    step=1
 )
+
+n = int(n)
 
 # ============================================================
 # MATRICE INITIALA
