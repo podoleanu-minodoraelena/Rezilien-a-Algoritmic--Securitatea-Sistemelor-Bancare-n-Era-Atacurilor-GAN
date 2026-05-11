@@ -3,63 +3,77 @@ import numpy as np
 import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
-from copy import deepcopy
+from PIL import Image
 
 # ============================================================
-# CONFIGURARE PAGINA
+# CONFIG PAGINA
 # ============================================================
 
 st.set_page_config(
-    page_title="Algoritmul Ungar - Securitate Bancară",
-    page_icon="🏦",
+    page_title="Hungarian Algorithm Visualizer",
+    page_icon="💸",
     layout="wide"
 )
 
 # ============================================================
-# STIL CSS
+# CSS
 # ============================================================
 
 st.markdown("""
 <style>
 
-.main {
-    background: linear-gradient(to bottom right, #0f172a, #1e293b);
+.stApp {
+    background: linear-gradient(135deg, #0f172a, #111827, #1e293b);
     color: white;
 }
 
 h1, h2, h3 {
-    color: #f8fafc;
+    color: white;
+}
+
+.block-container {
+    padding-top: 2rem;
 }
 
 .stButton>button {
+    width: 100%;
     background: linear-gradient(90deg,#16a34a,#22c55e);
     color: white;
-    border-radius: 12px;
     border: none;
-    padding: 0.6rem 1.2rem;
+    border-radius: 14px;
+    height: 3.2em;
+    font-size: 18px;
     font-weight: bold;
 }
 
-.stDataFrame {
-    border-radius: 12px;
+.stButton>button:hover {
+    transform: scale(1.02);
 }
 
-.metric-box {
-    background-color: rgba(255,255,255,0.08);
-    padding: 20px;
-    border-radius: 16px;
+.metric-card {
+    background: rgba(255,255,255,0.08);
+    padding: 25px;
+    border-radius: 18px;
     text-align: center;
+    border: 1px solid rgba(255,255,255,0.1);
 }
 
-.big-font {
-    font-size:20px !important;
-    font-weight:bold;
+.money {
+    font-size: 40px;
 }
 
-.bank-box {
+.assignment-box {
     background: rgba(255,255,255,0.06);
     padding: 15px;
-    border-radius: 15px;
+    border-radius: 14px;
+    margin-bottom: 12px;
+    border-left: 5px solid #22c55e;
+}
+
+.schema-box {
+    background: rgba(255,255,255,0.05);
+    padding: 20px;
+    border-radius: 20px;
     border: 1px solid rgba(255,255,255,0.1);
 }
 
@@ -70,19 +84,36 @@ h1, h2, h3 {
 # TITLU
 # ============================================================
 
-st.title("🏦 Algoritmul Ungar în Securitatea Bancară")
-st.markdown("""
-### Studiu de caz — Alocarea optimă a resurselor defensive
+st.title("💸 Hungarian Algorithm Visualizer")
 
-Această aplicație simulează:
-- distribuirea echipelor de securitate;
-- protejarea infrastructurii bancare;
-- minimizarea costurilor de apărare cibernetică;
-- optimizarea resurselor folosind **Algoritmul Ungar**.
+st.markdown("""
+Interactive visualization for solving assignment optimization problems.
+
+✔ Editable matrix  
+✔ Step-by-step execution  
+✔ Bipartite graph visualization  
+✔ Dynamic optimization  
 """)
 
 # ============================================================
-# MATRICE PREDEFINITA
+# SCHEMA LOGICA
+# ============================================================
+
+st.markdown("## 🧠 Logical Scheme")
+
+st.markdown('<div class="schema-box">', unsafe_allow_html=True)
+
+image = Image.open("schema_logica.png")
+
+st.image(
+    image,
+    use_container_width=True
+)
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+# ============================================================
+# MATRICE INITIALA
 # ============================================================
 
 default_matrix = np.array([
@@ -94,13 +125,7 @@ default_matrix = np.array([
     [5, 1, 2, 10, 6, 3]
 ])
 
-st.markdown("## 💳 Matricea costurilor")
-
-st.markdown("""
-Valorile reprezintă costurile de alocare ale resurselor de securitate:
-- linii = echipe defensive;
-- coloane = infrastructuri bancare / servicii.
-""")
+st.markdown("## ✏️ Edit Matrix")
 
 df = pd.DataFrame(
     default_matrix,
@@ -110,12 +135,11 @@ df = pd.DataFrame(
 
 edited_df = st.data_editor(
     df,
-    use_container_width=True,
-    num_rows="dynamic"
+    use_container_width=True
 )
 
 # ============================================================
-# CLASA ALGORITM
+# ALGORITM
 # ============================================================
 
 class HungarianSeminar:
@@ -128,10 +152,12 @@ class HungarianSeminar:
 
         self.steps = []
 
+    # --------------------------------------------------------
+
     def save_step(self, title):
         self.steps.append((title, self.C.copy()))
 
-    # ------------------------------------------------------------
+    # --------------------------------------------------------
 
     def step1(self):
 
@@ -140,21 +166,23 @@ class HungarianSeminar:
         for i in range(self.n):
             self.C[i] -= rowmin[i]
 
-        self.save_step("Pas 1A - Scăderea minimelor pe linii")
+        self.save_step("Row Reduction")
 
         colmin = self.C.min(axis=0)
 
         for j in range(self.n):
             self.C[:, j] -= colmin[j]
 
-        self.save_step("Pas 1B - Scăderea minimelor pe coloane")
+        self.save_step("Column Reduction")
 
-    # ------------------------------------------------------------
+    # --------------------------------------------------------
 
     def label_zeros(self):
 
-        zeros = [(i, j) for i in range(self.n)
-                 for j in range(self.n) if self.C[i, j] == 0]
+        zeros = [(i, j)
+                 for i in range(self.n)
+                 for j in range(self.n)
+                 if self.C[i, j] == 0]
 
         selected = set()
         crossed = set()
@@ -164,7 +192,8 @@ class HungarianSeminar:
         while rows_left:
 
             zrows = {
-                r: [z for z in zeros if z[0] == r
+                r: [z for z in zeros
+                    if z[0] == r
                     and z not in selected
                     and z not in crossed]
                 for r in rows_left
@@ -189,9 +218,9 @@ class HungarianSeminar:
 
             rows_left.remove(r)
 
-        return selected, crossed
+        return selected
 
-    # ------------------------------------------------------------
+    # --------------------------------------------------------
 
     def step4(self, selected):
 
@@ -227,7 +256,7 @@ class HungarianSeminar:
 
         return cut_rows, cut_cols
 
-    # ------------------------------------------------------------
+    # --------------------------------------------------------
 
     def step5(self, cut_rows, cut_cols):
 
@@ -254,9 +283,9 @@ class HungarianSeminar:
                 elif cuts == 2:
                     self.C[i, j] += eps
 
-        self.save_step(f"Deplasarea zerourilor (ε = {eps})")
+        self.save_step(f"Zero Adjustment (ε = {eps})")
 
-    # ------------------------------------------------------------
+    # --------------------------------------------------------
 
     def solve(self):
 
@@ -264,7 +293,7 @@ class HungarianSeminar:
 
         while True:
 
-            selected, crossed = self.label_zeros()
+            selected = self.label_zeros()
 
             if len(selected) == self.n:
                 break
@@ -281,10 +310,10 @@ class HungarianSeminar:
         return selected, total
 
 # ============================================================
-# RULARE
+# BUTON RULARE
 # ============================================================
 
-if st.button("🚀 Rulează Algoritmul Ungar"):
+if st.button("🚀 Run Algorithm"):
 
     matrix = edited_df.values
 
@@ -292,45 +321,47 @@ if st.button("🚀 Rulează Algoritmul Ungar"):
 
     selected, total = solver.solve()
 
-    st.success("Algoritmul a fost executat cu succes.")
-
     # ========================================================
     # REZULTATE
     # ========================================================
 
+    st.markdown("## 💰 Results")
+
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown("""
-        <div class="metric-box">
-        <h2>💰 Cost minim total</h2>
-        <h1>{}</h1>
+        st.markdown(f"""
+        <div class="metric-card">
+        <div class="money">💵💸💰</div>
+        <h2>Total Cost</h2>
+        <h1>{total}</h1>
         </div>
-        """.format(total), unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
     with col2:
-        st.markdown("""
-        <div class="metric-box">
-        <h2>🛡️ Resurse alocate</h2>
-        <h1>{}</h1>
+        st.markdown(f"""
+        <div class="metric-card">
+        <div class="money">🏦📈💳</div>
+        <h2>Assignments</h2>
+        <h1>{len(selected)}</h1>
         </div>
-        """.format(len(selected)), unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
     # ========================================================
-    # CUPLAJ
+    # ALOCARI
     # ========================================================
 
-    st.markdown("## 🔐 Cuplajul optim")
+    st.markdown("## 🔗 Optimal Assignments")
 
     for i, j in sorted(selected):
 
         cost = matrix[i][j]
 
         st.markdown(f"""
-        <div class="bank-box">
-        💳 Echipa <b>x{i+1}</b> protejează infrastructura <b>y{j+1}</b>
-        <br>
-        💵 Cost defensiv: <b>{cost}</b>
+        <div class="assignment-box">
+        💸 <b>x{i+1}</b> → <b>y{j+1}</b>
+        <br><br>
+        💰 Cost: <b>{cost}</b>
         </div>
         """, unsafe_allow_html=True)
 
@@ -338,7 +369,7 @@ if st.button("🚀 Rulează Algoritmul Ungar"):
     # PASI
     # ========================================================
 
-    st.markdown("## 📊 Evoluția algoritmului")
+    st.markdown("## 📊 Algorithm Steps")
 
     for title, mat in solver.steps:
 
@@ -350,13 +381,16 @@ if st.button("🚀 Rulează Algoritmul Ungar"):
             index=[f"x{i+1}" for i in range(solver.n)]
         )
 
-        st.dataframe(df_step, use_container_width=True)
+        st.dataframe(
+            df_step,
+            use_container_width=True
+        )
 
     # ========================================================
     # GRAF BIPARTIT
     # ========================================================
 
-    st.markdown("## 🌐 Graful bipartit al soluției")
+    st.markdown("## 🌐 Bipartite Graph")
 
     G = nx.Graph()
 
@@ -391,22 +425,22 @@ if st.button("🚀 Rulează Algoritmul Ungar"):
         G,
         pos,
         nodelist=left_nodes,
-        node_color='skyblue',
-        node_size=2500
+        node_color='#38bdf8',
+        node_size=2600
     )
 
     nx.draw_networkx_nodes(
         G,
         pos,
         nodelist=right_nodes,
-        node_color='lightgreen',
-        node_size=2500
+        node_color='#22c55e',
+        node_size=2600
     )
 
     nx.draw_networkx_edges(
         G,
         pos,
-        width=3,
+        width=4,
         edge_color='gold'
     )
 
@@ -417,41 +451,39 @@ if st.button("🚀 Rulează Algoritmul Ungar"):
         font_weight='bold'
     )
 
-    plt.title(
-        "Cuplajul optim al infrastructurii bancare",
-        color="white",
-        fontsize=16
-    )
-
     plt.axis("off")
 
     st.pyplot(fig)
 
-    st.balloons()
+    # ========================================================
+    # EFECT FINAL
+    # ========================================================
+
+    st.markdown("""
+    <h1 style='text-align:center;'>
+    💸 💰 💵 🏦 💳 💸 💰 💵
+    </h1>
+    """, unsafe_allow_html=True)
 
 # ============================================================
 # SIDEBAR
 # ============================================================
 
-st.sidebar.title("🏦 Sistem Bancar")
+st.sidebar.title("⚙️ Control Panel")
 
 st.sidebar.markdown("""
-### Despre aplicație
+### Features
 
-Aplicația modelează:
-- centre de securitate;
-- servere bancare;
-- costuri defensive;
-- infrastructuri critice.
+✔ Editable matrix  
+✔ Logical scheme  
+✔ Step-by-step visualization  
+✔ Bipartite graph  
+✔ Optimization engine  
 
-### Tehnologii
-- Streamlit
-- NumPy
-- NetworkX
-- Matplotlib
+### Technologies
 
-### Algoritm utilizat
-✔ Algoritmul Ungar
+- Streamlit  
+- NumPy  
+- NetworkX  
+- Matplotlib  
 """)
-
-st.sidebar.success("Securitatea infrastructurii este optimizată.")
