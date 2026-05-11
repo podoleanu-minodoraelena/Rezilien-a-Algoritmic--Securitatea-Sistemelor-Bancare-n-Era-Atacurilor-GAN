@@ -144,7 +144,7 @@ class HungarianStreamlit:
         st.pyplot(fig)
 
 # --- INTERFAȚA STREAMLIT ---
-st.title("🧩 Rezolvare: Metoda Ungară")
+st.title("🧩 ALGORITMUL  UNGAR")
 
 # Cerința profei: Schema logică e aici
 with st.expander("Vezi Schema Logică a Algoritmului"):
